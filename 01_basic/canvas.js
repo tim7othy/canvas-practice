@@ -1,11 +1,20 @@
 class Canvas {
   constructor(options) {
+    this.initCanvas(options)
+    this.mount(this.rootId)
+    this.initEvents()
+  }
+
+  // 根据传入的options配置canvas元素
+  initCanvas(options) {
     this.id = options.id || "canvas"
     this.rootId = options.root || "root"
     this.W = options.width || 800
     this.H = options.height || 600
-    this.pos = {}
-    this.mount(this.rootId)
+  }
+
+  // 设置canvas相关事件
+  initEvents() {
     this.getOffset()
   }
 
@@ -23,10 +32,13 @@ class Canvas {
   }
   
   draw() {
+    // 绘制一帧canvas的代码
+    // 由继承该类的具体Canvas实现
   }
 
   // 实时获取鼠标在canvas上的坐标
   getOffset() {
+    this.pos = {}
     this.canvas.addEventListener("mousemove", (ev) => {
       var {pageX, pageY, target} = ev
       var rect = target.getBoundingClientRect()
@@ -37,6 +49,7 @@ class Canvas {
     })
   }
 
+  // 循环每一帧绘制一次canvas
   loop() {
     var c = this
     window.requestAnimationFrame(function() {
@@ -50,56 +63,3 @@ class Canvas {
   }
 }
 
-class AxiosSystem extends Canvas {
-  constructor(options) {
-    super(options)
-  }
-
-  draw() {
-    this.ctx.clearRect(0, 0, this.W, this.H)
-    this.drawSystem()
-    this.drawVector()
-  }
-
-  // 绘制直角坐标系
-  drawSystem() {
-    this.ctx.save()
-    this.ctx.lineWidth = 1.5
-    this.ctx.strokeStyle = "#111"
-    this.ctx.beginPath()
-    this.ctx.moveTo(0, this.H/2)
-    this.ctx.lineTo(this.W, this.H/2)
-    this.ctx.moveTo(this.W/2, 0)
-    this.ctx.lineTo(this.W/2, this.H)
-    this.ctx.stroke()
-    this.ctx.restore()
-  }
-  
-  // 绘制坐标系原点到鼠标的线段
-  drawVector() {
-    if (!this.pos) {
-      return
-    }
-    var x = this.pos.x - this.W / 2
-    var y = this.pos.y - this.H / 2
-    var rad = Math.atan2(y, x)
-    this.ctx.save()
-    this.ctx.lineWidth = 1.5
-    this.ctx.strokeStyle = "#555"
-    this.ctx.beginPath()
-    this.ctx.moveTo(this.W/2, this.H/2)
-    this.ctx.lineTo(this.pos.x, this.pos.y)
-    this.ctx.stroke()
-    this.ctx.fillText(rad, this.pos.x, this.pos.y)
-    this.ctx.restore()
-  }
-
-}
-
-var system = new AxiosSystem({
-  root: "root",
-  id: "axiosSystem",
-  width: 800,
-  height: 600
-})
-system.start()
