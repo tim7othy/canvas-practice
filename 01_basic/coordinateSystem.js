@@ -1,4 +1,4 @@
-class AxiosSystem extends Canvas {
+class CoordinateSystem extends Canvas {
   constructor(options) {
     super(options)
   }
