@@ -16,6 +16,51 @@ class Canvas {
   // 设置canvas相关事件
   initEvents() {
     this.getOffset()
+    this.setupKeyActions()
+  }
+
+  setupKeyActions() {
+    this.keydowns = new Set()
+    this.keyActions = new Map()
+    window.addEventListener("keydown",(ev) => {
+      var {key} = ev
+      this.keydowns.add(key)
+    })
+    window.addEventListener("keyup",(ev) => {
+      var {key} = ev
+      this.keydowns.delete(key)
+    })
+  }
+
+  registerKeyAction(ev, callback) {
+    if (this.keyActions.has(ev)) {
+      var acts = this.keyActions.get(ev)
+      if (Array.isArray(acts)) {
+        acts.push(callback)
+      } else if (isFunc(acts)) {
+        this.keyActions.set(ev, [acts, callback])
+      } else {
+        throw new Error("Action type error")
+      }
+    } else {
+      this.keyActions.set(ev, [callback])
+    }
+  }
+
+  performKeyActions() {
+    var c = this
+    for (var k of this.keydowns.keys()) {
+      var acts = this.keyActions.get(k)
+      if (acts) {
+        if (Array.isArray(acts)) {
+          for (var f of acts) {
+            f(c)
+          }
+        } else if (isFunc(acts)) {
+          acts(c)
+        }
+      }
+    }
   }
 
   mount(id) {
@@ -29,6 +74,10 @@ class Canvas {
     // 将canvas元素和canvas上下文环境保存到Canvas实例中
     this.canvas = document.getElementById(id)
     this.ctx = this.canvas.getContext("2d")
+  }
+
+  update() {
+    this.performKeyActions()
   }
   
   draw() {
@@ -53,6 +102,7 @@ class Canvas {
   loop() {
     var c = this
     window.requestAnimationFrame(function() {
+      c.update()
       c.draw()
       c.loop()
     })
