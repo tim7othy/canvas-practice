@@ -1,6 +1,6 @@
-var system = new AxiosSystem({
+var system = new CoordinateSystem({
   root: "root",
-  id: "axiosSystem",
+  id: "coordinateSystem",
   width: 800,
   height: 600
 })
