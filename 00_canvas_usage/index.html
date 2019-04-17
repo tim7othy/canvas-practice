@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Canvas</title>
+</head>
+<body>
+  <canvas id="canvas" width="500" height="500"></canvas>
+</body>
+<script>
+  function drawGradient() {
+    var canvas = document.getElementById("canvas")
+    var ctx = canvas.getContext("2d")
+    // 创建渐变
+    var radgrad = ctx.createLinearGradient(50, 50, 150, 150);
+    radgrad.addColorStop(0, '#A7D30C');
+    radgrad.addColorStop(0.5, '#019F62');
+    radgrad.addColorStop(1, 'rgba(1,159,98,0)')
+    // 渐变作为样式
+    ctx.fillStyle = radgrad
+    // 绘制图形
+    ctx.fillRect(50, 50, 100, 100)
+  }
+
+  function drawImage() {
+    var canvas = document.getElementById("canvas")
+    var ctx = canvas.getContext("2d")
+    var img = new Image()
+    img.onload = function() {
+      ctx.drawImage(img, 700, 160, 500, 500, 0, 0, 500, 500)
+    }
+    img.src = "http://static.zybuluo.com/timothy-tianmu/3br3jjbt7taj3ja7bkt7tlnl/239947-106.jpg"
+
+  }
+  drawImage()
+</script>
+</html>
