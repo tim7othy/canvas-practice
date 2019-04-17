@@ -1,7 +1,7 @@
 class Canvas {
   constructor(options) {
     this.initCanvas(options)
-    this.mount(this.rootId)
+    this.mount(options)
     this.initEvents()
   }
 
@@ -19,6 +19,37 @@ class Canvas {
     this.setupMouseActions()
   }
 
+  // 辅助函数，执行acts变量指向的函数或指向的数组中的所有函数
+  callActions(acts, ev) {
+    if (acts) {
+      if (Array.isArray(acts)) {
+        for (var f of acts) {
+          f(ev)
+        }
+      } else if (isFunc(acts)) {
+        acts(ev)
+      }
+    }
+  }
+
+  // 辅助函数，在actionMap添加一条ev事件映射记录
+  registerAction(actionMap, ev, callback) {
+    if (actionMap.has(ev)) {
+      var acts = actionMap.get(ev)
+      if (Array.isArray(acts)) {
+        acts.push(callback)
+      } else if (isFunc(acts)) {
+        actionMap.set(ev, [acts, callback])
+      } else {
+        throw new Error("Action type error")
+      }
+    } else {
+      actionMap.set(ev, callback)
+    }
+  }
+
+
+  // 设置键盘相关事件
   setupKeyActions() {
     this.keydowns = new Set()
     this.keyActions = new Map()
@@ -32,6 +63,7 @@ class Canvas {
     })
   }
 
+  // 注册一个键盘事件
   registerKeyAction(ev, callback) {
     this.registerAction(this.keyActions, ev, callback)
   }
@@ -82,33 +114,6 @@ class Canvas {
     this.callActions(acts, eventWrapper)
   }
   
-  callActions(acts, ev) {
-    if (acts) {
-      if (Array.isArray(acts)) {
-        for (var f of acts) {
-          f(ev)
-        }
-      } else if (isFunc(acts)) {
-        acts(ev)
-      }
-    }
-  }
-
-  registerAction(actionMap, ev, callback) {
-    if (actionMap.has(ev)) {
-      var acts = actionMap.get(ev)
-      if (Array.isArray(acts)) {
-        acts.push(callback)
-      } else if (isFunc(acts)) {
-        actionMap.set(ev, [acts, callback])
-      } else {
-        throw new Error("Action type error")
-      }
-    } else {
-      actionMap.set(ev, [callback])
-    }
-  }
-
   // 转换鼠标在浏览器页面的坐标为canvas坐标
   getOffset(pageX, pageY, target) {
       var rect = target.getBoundingClientRect()
@@ -117,12 +122,12 @@ class Canvas {
       return {x, y}
   }
 
-  mount(id) {
+  mount(options) {
     // 将canvas挂载到指定根元素下
     var {W, H, id, rootId} = this
     var elem = document.getElementById(rootId)
     var canvas = `
-      <canvas id='${id}' width='${W}px' height='${H}px'></canvas>
+      <canvas id='${id}' width='${W}' height='${H}'></canvas>
     `
     elem.insertAdjacentHTML("beforeend", canvas)
     // 将canvas元素和canvas上下文环境保存到Canvas实例中
