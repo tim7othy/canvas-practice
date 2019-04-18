@@ -16,40 +16,9 @@ class Canvas {
   // 设置canvas相关事件
   initEvents() {
     this.setupKeyActions()
-    this.setupMouseActions()
   }
 
-  // 辅助函数，执行acts变量指向的函数或指向的数组中的所有函数
-  callActions(acts, ev) {
-    if (acts) {
-      if (Array.isArray(acts)) {
-        for (var f of acts) {
-          f(ev)
-        }
-      } else if (isFunc(acts)) {
-        acts(ev)
-      }
-    }
-  }
-
-  // 辅助函数，在actionMap添加一条ev事件映射记录
-  registerAction(actionMap, ev, callback) {
-    if (actionMap.has(ev)) {
-      var acts = actionMap.get(ev)
-      if (Array.isArray(acts)) {
-        acts.push(callback)
-      } else if (isFunc(acts)) {
-        actionMap.set(ev, [acts, callback])
-      } else {
-        throw new Error("Action type error")
-      }
-    } else {
-      actionMap.set(ev, callback)
-    }
-  }
-
-
-  // 设置键盘相关事件
+  // 收集用户按键
   setupKeyActions() {
     this.keydowns = new Set()
     this.keyActions = new Map()
@@ -67,7 +36,24 @@ class Canvas {
   registerKeyAction(ev, callback) {
     this.registerAction(this.keyActions, ev, callback)
   }
+  
+  // 辅助函数，在actionMap添加一条ev事件映射记录
+  registerAction(actionMap, ev, callback) {
+    if (actionMap.has(ev)) {
+      var acts = actionMap.get(ev)
+      if (Array.isArray(acts)) {
+        acts.push(callback)
+      } else if (isFunc(acts)) {
+        actionMap.set(ev, [acts, callback])
+      } else {
+        throw new Error("Action type error")
+      }
+    } else {
+      actionMap.set(ev, callback)
+    }
+  }
 
+  // 执行按下按键对应的处理函数
   performKeyActions() {
     var eventWrapper = {}
     for (var k of this.keydowns.keys()) {
@@ -82,45 +68,20 @@ class Canvas {
         this.callActions(acts, eventWrapper)
     }
   }
-
-  setupMouseActions() {
-    this.isMouseDown = false
-    this.mouseActions = new Map()
-    this.canvas.addEventListener("mousedown", (ev) => {
-      this.isMouseDown = true
-      this.mouseEventHandler("mousedown", ev)
-    })
-    this.canvas.addEventListener("mouseup", (ev) => {
-      this.isMouseDown = false
-      this.mouseEventHandler("mouseup", ev)
-    })
-    this.canvas.addEventListener("mousemove", (ev) => {
-      this.mouseEventHandler("mousemove", ev)
-    })
-    this.canvas.addEventListener("click", (ev) => {
-      this.mouseEventHandler("click", ev)
-    })
-  }
-
-  registerMouseAction(ev, callback) {
-    this.registerAction(this.mouseActions, ev, callback) 
-  }
-
-  mouseEventHandler(eventName, ev) {
-    var eventWrapper = {}
-    var {pageX, pageY, target} = ev
-    eventWrapper.pos = this.getOffset(pageX, pageY, target)
-    var acts = this.mouseActions.get(eventName)
-    this.callActions(acts, eventWrapper)
-  }
   
-  // 转换鼠标在浏览器页面的坐标为canvas坐标
-  getOffset(pageX, pageY, target) {
-      var rect = target.getBoundingClientRect()
-      var x = pageX - rect.left
-      var y = pageY - rect.top
-      return {x, y}
+  // 辅助函数，执行acts变量指向的函数或指向的数组中的所有函数
+  callActions(acts, ev) {
+    if (acts) {
+      if (Array.isArray(acts)) {
+        for (var f of acts) {
+          f(ev)
+        }
+      } else if (isFunc(acts)) {
+        acts(ev)
+      }
+    }
   }
+
 
   mount(options) {
     // 将canvas挂载到指定根元素下
@@ -143,7 +104,6 @@ class Canvas {
     // 绘制一帧canvas的代码
     // 由继承该类的具体Canvas实现
   }
-
 
   // 循环每一帧绘制一次canvas
   loop() {

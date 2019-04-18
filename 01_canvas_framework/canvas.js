@@ -1,7 +1,7 @@
 class Canvas {
   constructor(options) {
     this.initCanvas(options)
-    this.mount(this.rootId)
+    this.mount(options)
     this.initEvents()
   }
 
@@ -15,10 +15,10 @@ class Canvas {
 
   // 设置canvas相关事件
   initEvents() {
-    this.getOffset()
     this.setupKeyActions()
   }
 
+  // 收集用户按键
   setupKeyActions() {
     this.keydowns = new Set()
     this.keyActions = new Map()
@@ -32,43 +32,63 @@ class Canvas {
     })
   }
 
+  // 注册一个键盘事件
   registerKeyAction(ev, callback) {
-    if (this.keyActions.has(ev)) {
-      var acts = this.keyActions.get(ev)
+    this.registerAction(this.keyActions, ev, callback)
+  }
+  
+  // 辅助函数，在actionMap添加一条ev事件映射记录
+  registerAction(actionMap, ev, callback) {
+    if (actionMap.has(ev)) {
+      var acts = actionMap.get(ev)
       if (Array.isArray(acts)) {
         acts.push(callback)
       } else if (isFunc(acts)) {
-        this.keyActions.set(ev, [acts, callback])
+        actionMap.set(ev, [acts, callback])
       } else {
         throw new Error("Action type error")
       }
     } else {
-      this.keyActions.set(ev, [callback])
+      actionMap.set(ev, callback)
     }
   }
 
+  // 执行按下按键对应的处理函数
   performKeyActions() {
-    var c = this
+    var eventWrapper = {}
     for (var k of this.keydowns.keys()) {
-      var acts = this.keyActions.get(k)
-      if (acts) {
-        if (Array.isArray(acts)) {
-          for (var f of acts) {
-            f(c)
-          }
-        } else if (isFunc(acts)) {
-          acts(c)
+        if (k === "Control") {
+          eventWrapper.ctrlDown = true
+        } else if (k === "Alt") {
+          eventWrapper.altDown = true
+        } else if (k === "Shift") {
+          eventWrapper.shiftDown = true
         }
+        var acts = this.keyActions.get(k)
+        this.callActions(acts, eventWrapper)
+    }
+  }
+  
+  // 辅助函数，执行acts变量指向的函数或指向的数组中的所有函数
+  callActions(acts, ev) {
+    if (acts) {
+      if (Array.isArray(acts)) {
+        for (var f of acts) {
+          f(ev)
+        }
+      } else if (isFunc(acts)) {
+        acts(ev)
       }
     }
   }
 
-  mount(id) {
+
+  mount(options) {
     // 将canvas挂载到指定根元素下
     var {W, H, id, rootId} = this
     var elem = document.getElementById(rootId)
     var canvas = `
-      <canvas id='${id}' width='${W}px' height='${H}px'></canvas>
+      <canvas id='${id}' width='${W}' height='${H}'></canvas>
     `
     elem.insertAdjacentHTML("beforeend", canvas)
     // 将canvas元素和canvas上下文环境保存到Canvas实例中
@@ -83,19 +103,6 @@ class Canvas {
   draw() {
     // 绘制一帧canvas的代码
     // 由继承该类的具体Canvas实现
-  }
-
-  // 实时获取鼠标在canvas上的坐标
-  getOffset() {
-    this.pos = {}
-    this.canvas.addEventListener("mousemove", (ev) => {
-      var {pageX, pageY, target} = ev
-      var rect = target.getBoundingClientRect()
-      var x = pageX - rect.left
-      var y = pageY - rect.top
-      this.pos.x = x
-      this.pos.y = y
-    })
   }
 
   // 循环每一帧绘制一次canvas

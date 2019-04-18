@@ -3,4 +3,4 @@
   window.isFunc = function(func) {
     return Object.prototype.toString.call(func) === "[object Function]"
   }
-})
+})()

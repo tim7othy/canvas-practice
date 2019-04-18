@@ -1,7 +1,7 @@
-var system = new CoordinateSystem({
+var c = new AnimationCanvas({
   root: "root",
-  id: "coordinateSystem",
+  id: "animationCanvas",
   width: 800,
   height: 600
 })
-system.start()
+c.start()
