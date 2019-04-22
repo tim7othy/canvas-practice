@@ -8,6 +8,11 @@ class DrawBoard extends Canvas {
     this.setupTools()
   }
 
+  setupMaskCanvas() {
+    this.maskCanvas = document.getElementById(this.maskId)
+    this.maskContext = this.maskCanvas.getContext("2d")
+  }
+
   setupTools() {
     this.tool = PEN
     var penBtn = document.getElementById("pen")
@@ -34,12 +39,15 @@ class DrawBoard extends Canvas {
     var b = this
     this.canvas.addEventListener("mousedown", function(ev) {
       b.updateMouseOffset(ev)
+      b.mouseDownX = ev.offsetX
+      b.mouseDownY = ev.offsetY
       b.isMouseDown = true
     })
     this.canvas.addEventListener("mousemove", function(ev) {
       var lastOffsetX = b.offsetX
       var lastOffsetY = b.offsetY
       b.updateMouseOffset(ev)
+      var ctx = this.maskContext
       if (!b.isMouseDown) {
         return
       }
@@ -47,6 +55,11 @@ class DrawBoard extends Canvas {
         b.drawLine(lastOffsetX, lastOffsetY, b.offsetX, b.offsetY)
       } else if (b.tool === ERASER) {
         b.ctx.clearRect(b.offsetX, b.offsetY, 20, 20)
+      } else if (b.tool === RECT) {
+        b.ctx.clearRect(0,0,b.W,b.H)
+        var rect = new Path2D()
+        rect.rect(b.mouseDownX, b.mouseDownY, b.offsetX - b.mouseDownX, b.offsetY - b.mouseDownY)
+        b.drawRect(rect)
       }
     })
     this.canvas.addEventListener("mouseup", function(ev) {
@@ -65,9 +78,16 @@ class DrawBoard extends Canvas {
     this.ctx.restore()
   }
 
+  drawRect(rectPath) {
+    this.ctx.save()
+    this.ctx.lineWidth = 1.5
+    this.ctx.strokeStyle = "#000"
+    this.ctx.stroke(rectPath)
+    this.ctx.restore()
+  }
+
   update() {
     super.update()
-    log(this.tool)
   }
 
   mount(options) {
@@ -80,6 +100,11 @@ class DrawBoard extends Canvas {
         <button id="rect">RECT</button>
       </div>
     `
+    var maskId = this.id + "_mask"
+    var mask = `
+      <canvas id="${maskId}" width="${this.W}" height="${this.H}" style="z-index:99"></canvas> 
+    `
     root.insertAdjacentHTML("afterbegin", toolPane)
+    root.insertAdjacentHTML("beforeend", mask)
   }
 }
