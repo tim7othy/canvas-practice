@@ -1,0 +1,16 @@
+#root {
+  position: relative;
+}
+
+#root::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+#toolPane {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 100;
+}

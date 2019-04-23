@@ -18,6 +18,7 @@ class DrawBoard extends Canvas {
     })
     rectBtn.addEventListener("click", (ev) => {
       this.tool = RECT
+      log("clicked")
     })
   }
 
@@ -29,33 +30,43 @@ class DrawBoard extends Canvas {
 
   setup() {
     var b = this
-    this.canvas.addEventListener("mousedown", function(ev) {
+    var canvas = this.layers.get(UILAYER)
+    canvas.addEventListener("mousedown", function(ev) {
       b.updateMouseOffset(ev)
       b.mouseDownX = ev.offsetX
       b.mouseDownY = ev.offsetY
       b.isMouseDown = true
     })
-    this.canvas.addEventListener("mousemove", function(ev) {
+    canvas.addEventListener("mousemove", function(ev) {
       var lastOffsetX = b.offsetX
       var lastOffsetY = b.offsetY
       b.updateMouseOffset(ev)
-      var ctx = this.maskContext
       if (!b.isMouseDown) {
         return
       }
       if (b.tool === PEN) {
+        b.switchLayer(UILAYER)
         b.drawLine(lastOffsetX, lastOffsetY, b.offsetX, b.offsetY)
       } else if (b.tool === ERASER) {
+        b.switchLayer(this.id)
         b.ctx.clearRect(b.offsetX, b.offsetY, 20, 20)
       } else if (b.tool === RECT) {
+        b.switchLayer(UILAYER)
         b.ctx.clearRect(0,0,b.W,b.H)
         var rect = new Path2D()
         rect.rect(b.mouseDownX, b.mouseDownY, b.offsetX - b.mouseDownX, b.offsetY - b.mouseDownY)
         b.drawRect(rect)
       }
     })
-    this.canvas.addEventListener("mouseup", function(ev) {
+    canvas.addEventListener("mouseup", function(ev) {
       b.isMouseDown = false
+      var dataURL = b.layer.toDataURL()
+      var img = new Image()
+      img.onload = function() {
+        b.switchLayer(b.id)
+        b.ctx.drawImage(img, 0, 0)
+      }
+      img.src = dataURL
     })
   }
 
@@ -96,6 +107,6 @@ class DrawBoard extends Canvas {
         <button id="rect">RECT</button>
       </div>
     `
-    root.insertAdjacentHTML("afterbegin", toolPane)
+    root.insertAdjacentHTML("beforebegin", toolPane)
   }
 }
