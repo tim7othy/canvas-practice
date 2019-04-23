@@ -1,7 +1,7 @@
 class Canvas {
   constructor(options) {
     this.initCanvas(options)
-    this.mount(options)
+    this.mount()
     this.initEvents()
   }
 
@@ -33,10 +33,12 @@ class Canvas {
     this.layerContexts.set(layerId, layerCtx)
   }
 
-  // 切换为不同canvas层的绘图环境
-  switchLayer(layerId) {
-    this.layer = this.layers.get(layerId)
-    this.ctx = this.layerContexts.get(layerId)
+  getLayer(layerId) {
+    return this.layers.get(layerId)
+  }
+
+  getCtx(layerId) {
+    return this.layerContexts.get(layerId)
   }
 
   // 设置canvas相关事件
@@ -111,9 +113,9 @@ class Canvas {
   mount() {
     // 添加主要的canvas元素，并挂载到指定根元素下
     this.addLayer(this.id, 0, false)
-    // 将当前绘图环境设置为主canvas的上下文环境
-    this.layer = this.layers.get(this.id)
-    this.ctx = this.layer.getContext("2d")
+    // 将全局绘图环境设置为主canvas的上下文环境
+    this.layer = this.getLayer(this.id)
+    this.ctx = this.getCtx(this.id)
   }
 
   update() {

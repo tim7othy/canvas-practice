@@ -1,96 +1,59 @@
 class DrawBoard extends Canvas {
   constructor(options) {
     super(options)
-    this.setup()
+    this.setupBackground()
     this.setupTools()
   }
 
+  setupBackground() {
+    var bgCtx = this.getCtx(BACKGROUNDLAYER)
+    bgCtx.save()
+    bgCtx.strokeStyle = "#369"
+    bgCtx.lineWidth = 1
+    var w = this.gridWidth || 20
+    var h = this.gridHeight || 20
+    var cols = Math.floor(this.W / w)
+    var rows = Math.floor(this.H / h)
+    for (var i = 0; i <= cols; i++) {
+      bgCtx.moveTo(w*i, 0)
+      bgCtx.lineTo(w*i, this.H)
+    }
+    for (var i = 0; i <= rows; i++) {
+      bgCtx.moveTo(0, h*i)
+      bgCtx.lineTo(this.W, h*i)
+    }
+    bgCtx.stroke()
+    bgCtx.restore()
+  }
+
   setupTools() {
-    this.tool = PEN
+    this.tool = new Pen(this)
+    this.toolType = PEN
+
     var penBtn = document.getElementById("pen")
     var eraserBtn = document.getElementById("eraser")
     var rectBtn = document.getElementById("rect")
     penBtn.addEventListener("click", (ev) => {
-      this.tool = PEN
+      if (this.toolType && this.toolType != PEN) {
+        this.tool.unInstall()
+        this.tool = new Pen(this)
+        this.toolType = PEN
+      }
     })
     eraserBtn.addEventListener("click", (ev) => {
-      this.tool = ERASER
+      if (this.toolType && this.toolType != ERASER) {
+        this.tool.unInstall()
+        this.tool = new Eraser(this)
+        this.toolType = ERASER
+      }
     })
     rectBtn.addEventListener("click", (ev) => {
-      this.tool = RECT
-      log("clicked")
-    })
-  }
-
-  updateMouseOffset(mouseEvent) {
-    var {offsetX, offsetY} = mouseEvent
-    this.offsetX = offsetX
-    this.offsetY = offsetY
-  }
-
-  setup() {
-    var b = this
-    var canvas = this.layers.get(UILAYER)
-    canvas.addEventListener("mousedown", function(ev) {
-      b.updateMouseOffset(ev)
-      b.mouseDownX = ev.offsetX
-      b.mouseDownY = ev.offsetY
-      b.isMouseDown = true
-    })
-    canvas.addEventListener("mousemove", function(ev) {
-      var lastOffsetX = b.offsetX
-      var lastOffsetY = b.offsetY
-      b.updateMouseOffset(ev)
-      if (!b.isMouseDown) {
-        return
-      }
-      if (b.tool === PEN) {
-        b.switchLayer(UILAYER)
-        b.drawLine(lastOffsetX, lastOffsetY, b.offsetX, b.offsetY)
-      } else if (b.tool === ERASER) {
-        b.switchLayer(this.id)
-        b.ctx.clearRect(b.offsetX, b.offsetY, 20, 20)
-      } else if (b.tool === RECT) {
-        b.switchLayer(UILAYER)
-        b.ctx.clearRect(0,0,b.W,b.H)
-        var rect = new Path2D()
-        rect.rect(b.mouseDownX, b.mouseDownY, b.offsetX - b.mouseDownX, b.offsetY - b.mouseDownY)
-        b.drawRect(rect)
+      if (this.toolType && this.toolType != RECT) {
+        this.tool.unInstall()
+        this.tool = new Rect(this)
+        this.toolType = RECT
       }
     })
-    canvas.addEventListener("mouseup", function(ev) {
-      b.isMouseDown = false
-      var dataURL = b.layer.toDataURL()
-      var img = new Image()
-      img.onload = function() {
-        b.switchLayer(b.id)
-        b.ctx.drawImage(img, 0, 0)
-      }
-      img.src = dataURL
-    })
-  }
-
-  drawLine(x1, y1, x2, y2) {
-    this.ctx.save()
-    this.ctx.lineWidth = 1.5
-    this.ctx.strokeStyle = "#000"
-    this.ctx.beginPath()
-    this.ctx.moveTo(x1, y1)
-    this.ctx.lineTo(x2, y2)
-    this.ctx.stroke()
-    this.ctx.restore()
-  }
-
-  drawRect(rectPath) {
-    this.ctx.save()
-    this.ctx.lineWidth = 1.5
-    this.ctx.strokeStyle = "#000"
-    this.ctx.stroke(rectPath)
-    this.ctx.restore()
-  }
-
-  update() {
-    super.update()
   }
 
   mount() {
@@ -107,6 +70,6 @@ class DrawBoard extends Canvas {
         <button id="rect">RECT</button>
       </div>
     `
-    root.insertAdjacentHTML("beforebegin", toolPane)
+    root.insertAdjacentHTML("afterbegin", toolPane)
   }
 }
