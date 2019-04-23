@@ -5,12 +5,35 @@ class Canvas {
     this.initEvents()
   }
 
-  // 根据传入的options配置canvas元素
+  // 保存主要的canvas元素相关配置
   initCanvas(options) {
+    options = options || {}
     this.id = options.id || "canvas"
     this.rootId = options.root || "root"
     this.W = options.width || 800
     this.H = options.height || 600
+  }
+
+  // 添加一个canvas元素绘制层
+  addLayer(layerId, layerIndex, isHidden) {
+    var layer = `
+      <canvas id="${layerId}" width="${this.W}" height="${this.H}" 
+      style="z-index:${layerIndex};position:absolute;left:0;top:0;${isHidden ? "display:hidden" : ""}"></canvas>
+    ` 
+    var root = document.getElementById(this.rootId)
+    root.insertAdjacentHTML("beforeend", layer)
+    // 将所有canvas id到canvas元素的映射保存到Map中，方便之后切换canvas进行绘制
+    var layerElem = document.getElementById(layerId)
+    if (!this.layers) {
+      this.layers = new Map()
+    }
+    this.layers.set(layerId, layerElem)
+  }
+
+  // 切换为不同canvas层的绘图环境
+  switchLayer(layerId) {
+    var layer = this.layers.get(layerId)
+    this.ctx = layer.getContext("2d")
   }
 
   // 设置canvas相关事件
@@ -82,18 +105,12 @@ class Canvas {
     }
   }
 
-
-  mount(options) {
-    // 将canvas挂载到指定根元素下
-    var {W, H, id, rootId} = this
-    var elem = document.getElementById(rootId)
-    var canvas = `
-      <canvas id='${id}' width='${W}' height='${H}'></canvas>
-    `
-    elem.insertAdjacentHTML("beforeend", canvas)
-    // 将canvas元素和canvas上下文环境保存到Canvas实例中
-    this.canvas = document.getElementById(id)
-    this.ctx = this.canvas.getContext("2d")
+  mount() {
+    // 添加主要的canvas元素，并挂载到指定根元素下
+    this.addLayer(this.id, 0, false)
+    // 将当前绘图环境设置为主canvas的上下文环境
+    var canvas = this.layers.get(this.id)
+    this.ctx = canvas.getContext("2d")
   }
 
   update() {

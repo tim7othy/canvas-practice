@@ -1,16 +1,8 @@
-const PEN = "PEN"
-const ERASER = "ERASER"
-const RECT = "RECT"
 class DrawBoard extends Canvas {
   constructor(options) {
     super(options)
     this.setup()
     this.setupTools()
-  }
-
-  setupMaskCanvas() {
-    this.maskCanvas = document.getElementById(this.maskId)
-    this.maskContext = this.maskCanvas.getContext("2d")
   }
 
   setupTools() {
@@ -90,8 +82,12 @@ class DrawBoard extends Canvas {
     super.update()
   }
 
-  mount(options) {
-    super.mount(options)
+  mount() {
+    super.mount()
+    // 添加与用户交互的canvas层和背景层
+    this.addLayer(UILAYER, 1, false)
+    this.addLayer(BACKGROUNDLAYER, -1, false)
+    // 添加工具条
     var root = document.getElementById(this.rootId)
     var toolPane = `
       <div id="toolPane">
@@ -100,11 +96,6 @@ class DrawBoard extends Canvas {
         <button id="rect">RECT</button>
       </div>
     `
-    var maskId = this.id + "_mask"
-    var mask = `
-      <canvas id="${maskId}" width="${this.W}" height="${this.H}" style="z-index:99"></canvas> 
-    `
     root.insertAdjacentHTML("afterbegin", toolPane)
-    root.insertAdjacentHTML("beforeend", mask)
   }
 }
