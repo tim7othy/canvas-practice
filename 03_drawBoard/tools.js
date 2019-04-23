@@ -143,16 +143,36 @@ class Eraser extends Tool {
     super(board)
   }
 
+  drawEraserBorder(x, y, w, h) {
+    var ctx = this.uiCtx
+    ctx.save()
+    ctx.clearRect(0, 0, this.board.W, this.board.H)
+    ctx.beginPath()
+    ctx.rect(x, y, w, h)
+    ctx.closePath()
+    ctx.stroke()
+    ctx.restore()
+  }
+
   onMouseDown(ev) {
     super.onMouseDown(ev)
-    this.mainCtx.clearRect(this.mouseDownPos.x, this.mouseDownPos.y, 20, 20)
+    var eraserWidth = 20
+    var eraserHeight = 20
+    var x = this.mouseDownPos.x - eraserWidth / 2
+    var y = this.mouseDownPos.y - eraserHeight / 2
+    this.mainCtx.clearRect(x, y, 20, 20)
   }
 
   onMouseMove(ev) {
     super.onMouseMove(ev)
+    var eraserWidth = 20
+    var eraserHeight = 20
+    var x = this.mouseMovePos.x - eraserWidth / 2
+    var y = this.mouseMovePos.y - eraserHeight / 2
+    this.drawEraserBorder(x, y, eraserWidth, eraserHeight)
     if (!this.isMouseDown) {
       return
     }
-    this.mainCtx.clearRect(this.mouseMovePos.x, this.mouseMovePos.y, 20, 20)
+    this.mainCtx.clearRect(x, y, eraserWidth, eraserHeight)
   }
 }
