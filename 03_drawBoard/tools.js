@@ -57,9 +57,9 @@ class Tool {
     img.onload = () => {
       // 将图片绘制到主画板上
       this.mainCtx.drawImage(img, 0, 0) 
+      this.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
     }
     img.src = dataURL
-    this.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
   }
 }
 
@@ -93,7 +93,7 @@ class Pen extends Tool {
   drawLine(ctx, pos1, pos2) {
     ctx.save()
     ctx.lineWidth = 1.5
-    ctx.strokeStyle = "#000"
+    ctx.strokeStyle = "RGB(190, 195, 208)"
     ctx.beginPath()
     ctx.moveTo(pos1.x, pos1.y)
     ctx.lineTo(pos2.x, pos2.y)

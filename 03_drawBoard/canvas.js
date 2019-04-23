@@ -8,20 +8,25 @@ class Canvas {
   // 保存主要的canvas元素相关配置
   initCanvas(options) {
     options = options || {}
+    // canvas元素的id
     this.id = options.id || "canvas"
+    // 挂载画板的元素的id
     this.rootId = options.root || "root"
     this.W = options.width || 800
     this.H = options.height || 600
+    this.left = options.left || 0
+    this.top = options.top || 0
+    this.zIndex = options.zIndex || 10
   }
 
   // 添加一个canvas元素绘制层
   addLayer(layerId, layerIndex, isHidden) {
     var layer = `
       <canvas id="${layerId}" width="${this.W}" height="${this.H}" 
-      style="z-index:${layerIndex};position:absolute;left:0;top:0;${isHidden ? "visibility:hidden" : ""}"></canvas>
+      style="z-index:${layerIndex};position:absolute;left:${this.left};top:${this.top};${isHidden ? "visibility:hidden" : ""}"></canvas>
     ` 
-    var root = document.getElementById(this.rootId)
-    root.insertAdjacentHTML("beforeend", layer)
+    var wrapper = document.getElementById(this.rootId)
+    wrapper.insertAdjacentHTML("beforeend", layer)
     // 将所有canvas id到canvas元素的映射保存到Map中，方便之后切换canvas进行绘制
     var layerElem = document.getElementById(layerId)
     var layerCtx = layerElem.getContext("2d")
@@ -111,8 +116,7 @@ class Canvas {
   }
 
   mount() {
-    // 添加主要的canvas元素，并挂载到指定根元素下
-    this.addLayer(this.id, 0, false)
+    this.addLayer(this.id, this.zIndex, false)
     // 将全局绘图环境设置为主canvas的上下文环境
     this.layer = this.getLayer(this.id)
     this.ctx = this.getCtx(this.id)

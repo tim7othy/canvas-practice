@@ -1,7 +1,10 @@
+var canvasRoot = document.getElementById("drawboardWrapper")
+var w = canvasRoot.clientWidth
+var h = canvasRoot.clientHeight
 var board = new DrawBoard({
-  root: "root",
-  id: "drawBoard",
-  width: 800,
-  height: 600
+  root: "drawboardWrapper",
+  id: "drawboard",
+  width: w,
+  height: h
 })
 board.start()
