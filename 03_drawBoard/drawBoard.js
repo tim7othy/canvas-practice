@@ -65,9 +65,17 @@ class DrawBoard extends Canvas {
     var root = document.getElementById(this.rootId)
     var toolPane = `
       <div id="toolPane">
-        <button id="eraser">ERASER</button>
-        <button id="pen">PEN</button>
-        <button id="rect">RECT</button>
+        <div id="cancel" class="tool"><span class="iconfont icon-cancel1f"></span></div>
+        <div id="redo" class="tool"><span class="iconfont icon-redo"></span></div>
+        <div id="download" class="tool"><span class="iconfont icon-Clouddownload"></span></div>
+        <div id="clear" class="tool"><span class="iconfont icon-custom-clear"></span></div>
+        <div id="eraser" class="tool"><span class="iconfont icon-Rubber"></span></div>
+        <div id="text" class="tool"><span class="iconfont icon-fontnormal"></span></div>
+        <div id="color" class="tool"><span class="iconfont icon-bucket"></span></div>
+        <div id="circle" class="tool"><span class="iconfont icon-circle"></span></div>
+        <div id="rect" class="tool"><span class="iconfont icon-square"></span></div>
+        <div id="line" class="tool"><span class="iconfont icon-Line"></span></div>
+        <div id="pen" class="tool"><span class="iconfont icon-pencil"></span></div>
       </div>
     `
     root.insertAdjacentHTML("afterbegin", toolPane)
