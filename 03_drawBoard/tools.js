@@ -1,6 +1,11 @@
 class Tool {
   constructor(board) {
     this.board = board
+    this.color = "#fff"
+    this.lineWidth = 1.5
+  }
+
+  install() {
     this.initContext()
     this.initEvents()
   }
@@ -50,6 +55,43 @@ class Tool {
     this.isMouseDown = false
   }
 
+  drawLine(ctx, pos1, pos2) {
+    ctx.save()
+    ctx.lineWidth = this.lineWidth
+    ctx.strokeStyle = this.color
+    ctx.beginPath()
+    ctx.moveTo(pos1.x, pos1.y)
+    ctx.lineTo(pos2.x, pos2.y)
+    ctx.stroke()
+    ctx.restore()
+  }
+
+  drawRect(ctx, pos1, pos2) {
+    var w = pos2.x - pos1.x
+    var h = pos2.y - pos1.y
+    ctx.save()
+    ctx.lineWidth = this.lineWidth
+    ctx.strokeStyle = this.color
+    ctx.beginPath()
+    ctx.moveTo(pos1.x, pos1.y)
+    ctx.lineTo(pos1.x + w, pos1.y)
+    ctx.lineTo(pos1.x + w, pos1.y + h)
+    ctx.lineTo(pos1.x, pos1.y + h)
+    ctx.closePath()
+    ctx.stroke()
+    ctx.restore()
+  }
+
+  drawCircle(ctx, center, radius) {
+    ctx.save()
+    ctx.lineWidth = this.lineWidth
+    ctx.strokeStyle = this.color
+    ctx.beginPath()
+    ctx.arc(center.x, center.y, radius, 0, Math.PI * 2)
+    ctx.stroke()
+    ctx.restore()
+  }
+
   drawOn() {
     // ui绘制层canvas生成图片
     var dataURL = this.uiLayer.toDataURL()
@@ -66,6 +108,7 @@ class Tool {
 class Pen extends Tool {
   constructor(board) {
     super(board)
+    this.toolType = PEN
   }
 
   onMouseMove(ev) {
@@ -89,22 +132,12 @@ class Pen extends Tool {
     this.lastPos = null
     this.drawOn()
   }
-
-  drawLine(ctx, pos1, pos2) {
-    ctx.save()
-    ctx.lineWidth = 1.5
-    ctx.strokeStyle = "RGB(190, 195, 208)"
-    ctx.beginPath()
-    ctx.moveTo(pos1.x, pos1.y)
-    ctx.lineTo(pos2.x, pos2.y)
-    ctx.stroke()
-    ctx.restore()
-  }
 }
 
 class Rect extends Tool {
   constructor(board) {
     super(board)
+    this.toolType = RECT
   }
 
   onMouseMove(ev) {
@@ -121,37 +154,20 @@ class Rect extends Tool {
     this.drawOn()
   }
 
-  drawRect(ctx, pos1, pos2) {
-    var w = pos2.x - pos1.x
-    var h = pos2.y - pos1.y
-    ctx.save()
-    ctx.lineWidth = 1.5
-    ctx.strokeStyle = "#000"
-    ctx.beginPath()
-    ctx.moveTo(pos1.x, pos1.y)
-    ctx.lineTo(pos1.x + w, pos1.y)
-    ctx.lineTo(pos1.x + w, pos1.y + h)
-    ctx.lineTo(pos1.x, pos1.y + h)
-    ctx.closePath()
-    ctx.stroke()
-    ctx.restore()
-  }
 }
 
 class Eraser extends Tool {
   constructor(board) {
     super(board)
+    this.toolType = ERASER
   }
 
   drawEraserBorder(x, y, w, h) {
     var ctx = this.uiCtx
-    ctx.save()
     ctx.clearRect(0, 0, this.board.W, this.board.H)
-    ctx.beginPath()
-    ctx.rect(x, y, w, h)
-    ctx.closePath()
-    ctx.stroke()
-    ctx.restore()
+    var pos1 = {x, y}
+    var pos2 = {x:x+w, y:y+h}
+    this.drawRect(ctx, pos1, pos2)
   }
 
   onMouseDown(ev) {
@@ -174,5 +190,53 @@ class Eraser extends Tool {
       return
     }
     this.mainCtx.clearRect(x, y, eraserWidth, eraserHeight)
+  }
+}
+
+class Line extends Tool {
+  constructor(board) {
+    super(board)
+    this.toolType = LINE
+  }
+
+  onMouseMove(ev) {
+    super.onMouseMove(ev)
+    if (!this.isMouseDown) {
+      return
+    }
+    this.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
+    this.drawLine(this.uiCtx, this.mouseDownPos, this.mouseMovePos)
+  }
+
+  onMouseUp(ev) {
+    super.onMouseUp(ev)
+    this.drawOn()
+  }
+
+}
+
+class Circle extends Tool {
+  constructor(board) {
+    super(board)
+    this.toolType = CIRCLE
+  }
+
+  onMouseMove(ev) {
+    super.onMouseMove(ev)
+    if (!this.isMouseDown) {
+      return
+    }
+    var pos1 = this.mouseDownPos
+    var pos2 = this.mouseMovePos
+    log(pos1, pos2)
+    var radius = Math.sqrt(Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2))
+    log(radius)
+    this.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
+    this.drawCircle(this.uiCtx, this.mouseDownPos, radius)
+  }
+
+  onMouseUp(ev) {
+    super.onMouseUp(ev)
+    this.drawOn()
   }
 }

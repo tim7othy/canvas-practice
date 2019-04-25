@@ -7,4 +7,3 @@ var board = new DrawBoard({
   width: w,
   height: h
 })
-board.start()

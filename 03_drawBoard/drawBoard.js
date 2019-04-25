@@ -29,31 +29,37 @@ class DrawBoard extends Canvas {
   }
 
   setupTools() {
-    this.tool = new Pen(this)
-    this.toolType = PEN
-
-    var penBtn = document.getElementById("pen")
-    var eraserBtn = document.getElementById("eraser")
-    var rectBtn = document.getElementById("rect")
-    penBtn.addEventListener("click", (ev) => {
-      if (this.toolType && this.toolType != PEN) {
-        this.tool.unInstall()
-        this.tool = new Pen(this)
-        this.toolType = PEN
+    this.tools = new Map([
+      [PEN, new Pen(this)],
+      [ERASER, new Eraser(this)],
+      [RECT, new Rect(this)],
+      [LINE, new Line(this)],
+      [CIRCLE, new Circle(this)]
+    ])
+    this.tool = this.tools.get(PEN)
+    this.tool.install()
+    
+    var toolPane = document.getElementById("toolPane")
+    toolPane.addEventListener("click", (ev) => {
+      // 代理每个按钮的点击事件
+      var elem = ev.target
+      while (elem.classList[0] != "tool") {
+        if (elem.id === "toolPane") {
+          return
+        }
+        elem = elem.parentElement
       }
-    })
-    eraserBtn.addEventListener("click", (ev) => {
-      if (this.toolType && this.toolType != ERASER) {
+      // 根据点击的按钮包含的工具的类型，切换当前使用的工具
+      var toolType = elem.dataset.name
+      var tool = this.tools.get(toolType)
+      if (tool && toolType != this.tool.toolType) {
         this.tool.unInstall()
-        this.tool = new Eraser(this)
-        this.toolType = ERASER
-      }
-    })
-    rectBtn.addEventListener("click", (ev) => {
-      if (this.toolType && this.toolType != RECT) {
-        this.tool.unInstall()
-        this.tool = new Rect(this)
-        this.toolType = RECT
+        this.tool = tool
+        this.tool.install()
+      } else if (toolType === CLEAR){
+        this.ctx.clearRect(0, 0, this.W, this.H)
+      } else if (toolType === DOWNLOAD) {
+        this.layer.
       }
     })
   }
