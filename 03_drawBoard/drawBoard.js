@@ -59,7 +59,11 @@ class DrawBoard extends Canvas {
       } else if (toolType === CLEAR){
         this.ctx.clearRect(0, 0, this.W, this.H)
       } else if (toolType === DOWNLOAD) {
-        this.layer.
+        var image = this.layer.toDataURL("image/png")
+        var save_link = document.createElement('a');
+        save_link.href = image;
+        save_link.download = new Date().toUTCString() + '.png';
+        save_link.click()
       }
     })
   }
