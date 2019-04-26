@@ -3,6 +3,8 @@ class Tool {
     this.board = board
     this.color = "#fff"
     this.lineWidth = 1.5
+    this.fontsize = 25
+    this.dashOffset = 0
   }
 
   install() {
@@ -66,12 +68,22 @@ class Tool {
     ctx.restore()
   }
 
-  drawRect(ctx, pos1, pos2) {
+  drawRect(ctx, pos1, pos2, options) {
     var w = pos2.x - pos1.x
     var h = pos2.y - pos1.y
     ctx.save()
     ctx.lineWidth = this.lineWidth
     ctx.strokeStyle = this.color
+    if (options && options.dashed) {
+      ctx.setLineDash([5, 15])
+      if (options.flow) {
+        ctx.lineDashOffset = this.dashOffset
+        this.dashOffset++
+        if (this.dashOffset > 16) {
+          this.dashOffset = 0
+        }
+      }
+    }
     ctx.beginPath()
     ctx.moveTo(pos1.x, pos1.y)
     ctx.lineTo(pos1.x + w, pos1.y)
@@ -93,15 +105,24 @@ class Tool {
   }
 
   drawOn() {
-    // ui绘制层canvas生成图片
-    var dataURL = this.uiLayer.toDataURL()
-    var img = new Image()
-    img.onload = () => {
-      // 将图片绘制到主画板上
-      this.mainCtx.drawImage(img, 0, 0) 
-      this.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
-    }
-    img.src = dataURL
+    return new Promise((resolve, reject) => {
+      // ui绘制层canvas生成图片
+      var dataURL = this.uiLayer.toDataURL()
+      var img = new Image()
+      img.onload = () => {
+        // 将图片绘制到主画板上
+        this.mainCtx.drawImage(img, 0, 0) 
+        this.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
+        this.saveHistory()
+        resolve()
+      }
+      img.src = dataURL
+    })
+  }
+
+  saveHistory() {
+    var t = this.mainLayer.toDataURL()
+    this.board.setHistory(t)
   }
 }
 
@@ -118,13 +139,13 @@ class Pen extends Tool {
     }
     if (!this.lastPos) {
       this.lastPos = {
-        x: this.mouseDownPos.x,
-        y: this.mouseDownPos.y
+        ...this.mouseDownPos
       }
     }
     this.drawLine(this.uiCtx, this.lastPos, this.mouseMovePos)
-    this.lastPos.x = this.mouseMovePos.x
-    this.lastPos.y = this.mouseMovePos.y
+    this.lastPos = {
+      ...this.mouseMovePos
+    }
   }
 
   onMouseUp(ev) {
@@ -191,6 +212,10 @@ class Eraser extends Tool {
     }
     this.mainCtx.clearRect(x, y, eraserWidth, eraserHeight)
   }
+
+  onMouseUp(ev) {
+    this.saveHistory()
+  }
 }
 
 class Line extends Tool {
@@ -238,5 +263,92 @@ class Circle extends Tool {
   onMouseUp(ev) {
     super.onMouseUp(ev)
     this.drawOn()
+  }
+}
+
+class Text extends Tool {
+  constructor(board) {
+    super(board)
+    this.textWidth = 300
+    this.textHeight = 200
+    this.fontsize = 25
+    this.inputHandler = (ev) => { this.onInput(ev) }
+  }
+  
+  drawText(pos, text) {
+    var ctx = this.uiCtx
+    ctx.clearRect(0, 0, this.board.W, this.board.H)
+    ctx.save()
+    ctx.font = `${this.fontsize}px sans-serif`;
+    ctx.fillStyle = this.color
+    var lines = []
+    var line = ""
+    var headIndex = 0
+    for (var i = 0; i < text.length; i++) {
+      line += text[i]
+      var obj = ctx.measureText(line)
+      if (obj.width > (this.textWidth - this.fontsize)) {
+        lines.push(text.substring(headIndex, i))
+        line = ""
+        headIndex = i
+      }
+    }
+    if (line !== "") {
+      lines.push(line)
+    }
+    for (var j = 0; j < lines.length; j++) {
+      if ((j+1)*this.fontsize < this.textHeight) {
+        ctx.fillText(lines[j], pos.x, pos.y + (j + 1) * this.fontsize)
+      }
+    }
+    ctx.restore()
+  }
+
+  drawTextarea(pos) {
+    var pos2 = {
+      x: pos.x + this.textWidth,
+      y: pos.y + this.textHeight
+    }
+    this.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
+    this.drawRect(this.uiCtx, pos, pos2, {dashed: true, flow: true})
+  }
+
+  onInput(ev) {
+    this.value = this.board.input.value
+    this.drawText(this.mouseUpPos, this.value)
+  }
+
+  finishInput() {
+    // 去掉文本框的虚线框
+    // this.board.cacel()
+    this.drawOn().then(() => {
+      this.board.input.value = ""
+      this.drawTextarea(this.mouseDownPos)
+    })
+  }
+
+  onMouseDown(ev) {
+    super.onMouseDown(ev)
+    if (this.board.input.value !== "") {
+      this.finishInput()
+    } else {
+      this.drawTextarea(this.mouseDownPos)
+    }
+  }
+
+  onMouseMove(ev) {
+    super.onMouseMove(ev)
+    if (!this.isMouseDown) {
+      return
+    }
+    this.drawTextarea(this.mouseMovePos)
+  }
+
+  onMouseUp(ev) {
+    super.onMouseUp(ev)
+    this.drawTextarea(this.mouseUpPos)
+    this.drawOn()
+    this.board.input.focus()
+    this.board.input.addEventListener("input", this.inputHandler)
   }
 }
