@@ -11,39 +11,10 @@ class Canvas {
     // canvas元素的id
     this.id = options.id || "canvas"
     // 挂载画板的元素的id
-    this.rootId = options.root || "root"
-    this.W = options.width || 800
-    this.H = options.height || 600
-    this.left = options.left || 0
-    this.top = options.top || 0
-    this.zIndex = options.zIndex || 10
-  }
-
-  // 添加一个canvas元素绘制层
-  addLayer(layerId, layerIndex, isHidden) {
-    var layer = `
-      <canvas id="${layerId}" width="${this.W}" height="${this.H}" 
-      style="z-index:${layerIndex};position:absolute;left:${this.left};top:${this.top};${isHidden ? "visibility:hidden" : ""}"></canvas>
-    ` 
-    var wrapper = document.getElementById(this.rootId)
-    wrapper.insertAdjacentHTML("beforeend", layer)
-    // 将所有canvas id到canvas元素的映射保存到Map中，方便之后切换canvas进行绘制
-    var layerElem = document.getElementById(layerId)
-    var layerCtx = layerElem.getContext("2d")
-    if (!this.layers) {
-      this.layers = new Map()
-      this.layerContexts = new Map()
-    }
-    this.layers.set(layerId, layerElem)
-    this.layerContexts.set(layerId, layerCtx)
-  }
-
-  getLayer(layerId) {
-    return this.layers.get(layerId)
-  }
-
-  getCtx(layerId) {
-    return this.layerContexts.get(layerId)
+    this.parentId = options.parentId || "root"
+    this.parentElement = document.getElementById(this.parentId)
+    this.W = options.width || this.rootElement.clientWidth
+    this.H = options.height || this.rootElement.clientHeight
   }
 
   // 设置canvas相关事件
@@ -116,10 +87,12 @@ class Canvas {
   }
 
   mount() {
-    this.addLayer(this.id, this.zIndex, false)
-    // 将全局绘图环境设置为主canvas的上下文环境
-    this.layer = this.getLayer(this.id)
-    this.ctx = this.getCtx(this.id)
+    var canvas = `
+      <canvas id="${this.id}" width="${this.W}" height="${this.H}"></canvas>
+    ` 
+    this.parentElement.insertAdjacentHTML("beforeend", canvas)
+    this.canvasElement = document.getElementById(this.id)
+    this.canvasContext = this.canvasElement.getContext("2d")
   }
 
   update() {
