@@ -1,34 +1,40 @@
 class DrawBoard {
   constructor(parentId) {
     this.parentId = parentId
-    this.setupCanvas(parentId)
+    this.setupCanvas()
     this.setupBackground()
     this.setupTools()
     this.setupTextInput()
     this.setupHistory(30)
   }
 
-  setupCanvas(parentId) {
+  setupCanvas() {
     // 与用户动态交互的canvas层
-    this.uiCanvas = new Canvas({
+    var uiLayer = new Canvas({
       id: "drawboard_ui_canvas",
-      parentId: parentId,
+      parentId: this.parentId,
     })
-    this.uiCtx = this.uiCanvas.getContext("2d")
+    this.uiCanvas = uiLayer.canvasElement
+    this.uiCtx = uiLayer.canvasContext
 
     // 绘制主要画面的canvas层
-    this.mainCanvas = new Canvas({
+    var mainLayer = new Canvas({
       id: "drawboard_main_canvas",
-      parentId: parentId,
+      parentId: this.parentId,
     })
-    this.mainCtx = this.mainCanvas.getContext("2d")
+    this.mainCanvas = mainLayer.canvasElement
+    this.mainCtx = mainLayer.canvasContext
 
     // 很少变化的绘制背景的canvas层
-    this.bgCanvas = new Canvas({
+    var bgLayer = new Canvas({
       id: "drawboard_bg_canvas",
-      parentId: parentId,
+      parentId: this.parentId,
     })
-    this.bgCtx = this.bgCanvas.getContext("2d")
+    this.bgCanvas = bgLayer.canvasElement
+    this.bgCtx = bgLayer.canvasContext
+    // 保存canvas的宽和高
+    this.W = mainLayer.width
+    this.H = mainLayer.height
   }
 
   setupTextInput() {
@@ -61,12 +67,12 @@ class DrawBoard {
       var lastDataURL = h.queue[h.currIndex]
       var img = new Image()
       img.onload = () => {
-        this.ctx.clearRect(0, 0, this.W, this.H)
-        this.ctx.drawImage(img, 0, 0)
+        this.mainCtx.clearRect(0, 0, this.W, this.H)
+        this.mainCtx.drawImage(img, 0, 0)
       }
       img.src = lastDataURL
     } else {
-      this.ctx.clearRect(0, 0, this.W, this.H)
+      this.mainCtx.clearRect(0, 0, this.W, this.H)
       h.currIndex = -1
     }
   }
@@ -78,8 +84,8 @@ class DrawBoard {
       var nextDataURL = h.queue[nextIndex]
       var img = new Image()
       img.onload = () => {
-        this.ctx.clearRect(0, 0, this.W, this.H)
-        this.ctx.drawImage(img, 0, 0)
+        this.mainCtx.clearRect(0, 0, this.W, this.H)
+        this.mainCtx.drawImage(img, 0, 0)
       }
       img.src = nextDataURL
       h.currIndex = nextIndex
@@ -139,9 +145,9 @@ class DrawBoard {
         this.tool = tool
         this.tool.install()
       } else if (toolType === CLEAR){
-        this.ctx.clearRect(0, 0, this.W, this.H)
+        this.mainCtx.clearRect(0, 0, this.W, this.H)
       } else if (toolType === DOWNLOAD) {
-        var image = this.layer.toDataURL("image/png")
+        var image = this.mainCanvas.toDataURL("image/png")
         var save_link = document.createElement('a');
         save_link.href = image;
         save_link.download = new Date().toUTCString() + '.png';

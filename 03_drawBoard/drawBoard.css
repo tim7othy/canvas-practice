@@ -63,6 +63,25 @@ header .logo {
   bottom: 0;
 }
 
+#drawboardWrapper > #drawboard_ui_canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+}
+#drawboardWrapper > #drawboard_main_canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+}
+#drawboardWrapper > #drawboard_bg_canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+}
+
 
 #toolPane {
   width: 100%;

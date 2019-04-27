@@ -8,33 +8,25 @@ class Tool {
   }
 
   install() {
-    this.initContext()
     this.initEvents()
   }
 
-  initContext() {
-    this.uiLayer = this.board.getLayer(UILAYER)
-    this.uiCtx = this.board.getCtx(UILAYER)
-    this.bgLayer = this.board.getLayer(BACKGROUNDLAYER)
-    this.bgCtx = this.board.getCtx(BACKGROUNDLAYER)
-    this.mainLayer = this.board.layer
-    this.mainCtx = this.board.ctx
-  }
-
   initEvents() {
+    var uiCanvas = this.board.uiCanvas
     this.isMouseDown = false
     this.mouseDownHandler = (ev) => { this.onMouseDown(ev) } 
     this.mouseMoveHandler = (ev) => { this.onMouseMove(ev) } 
     this.mouseUpHandler = (ev) => { this.onMouseUp(ev) } 
-    this.uiLayer.addEventListener("mousedown", this.mouseDownHandler)
-    this.uiLayer.addEventListener("mousemove", this.mouseMoveHandler)
-    this.uiLayer.addEventListener("mouseup", this.mouseUpHandler)
+    uiCanvas.addEventListener("mousedown", this.mouseDownHandler)
+    uiCanvas.addEventListener("mousemove", this.mouseMoveHandler)
+    uiCanvas.addEventListener("mouseup", this.mouseUpHandler)
   }
 
   unInstall() {
-    this.uiLayer.removeEventListener("mousedown", this.mouseDownHandler)
-    this.uiLayer.removeEventListener("mousemove", this.mouseMoveHandler)
-    this.uiLayer.removeEventListener("mouseup", this.mouseUpHandler)
+    var uiCanvas = this.board.uiCanvas
+    uiCanvas.removeEventListener("mousedown", this.mouseDownHandler)
+    uiCanvas.removeEventListener("mousemove", this.mouseMoveHandler)
+    uiCanvas.removeEventListener("mouseup", this.mouseUpHandler)
   }
 
   getPos(ev) {
@@ -122,7 +114,7 @@ class Tool {
   }
 
   saveHistory() {
-    var t = this.board.mainLayer.toDataURL()
+    var t = this.board.mainCanvas.toDataURL()
     this.board.setHistory(t)
   }
 }
@@ -143,7 +135,7 @@ class Pen extends Tool {
         ...this.mouseDownPos
       }
     }
-    this.drawLine(this.uiCtx, this.lastPos, this.mouseMovePos)
+    this.drawLine(this.board.uiCtx, this.lastPos, this.mouseMovePos)
     this.lastPos = {
       ...this.mouseMovePos
     }
@@ -167,6 +159,7 @@ class Rect extends Tool {
     if (!this.isMouseDown) {
       return
     }
+    log(this.board)
     this.board.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
     this.drawRect(this.board.uiCtx, this.mouseDownPos, this.mouseMovePos)
   }
@@ -215,6 +208,7 @@ class Eraser extends Tool {
   }
 
   onMouseUp(ev) {
+    super.onMouseUp(ev)
     this.saveHistory()
   }
 }

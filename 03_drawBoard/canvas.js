@@ -13,8 +13,8 @@ class Canvas {
     // 挂载画板的元素的id
     this.parentId = options.parentId || "root"
     this.parentElement = document.getElementById(this.parentId)
-    this.W = options.width || this.rootElement.clientWidth
-    this.H = options.height || this.rootElement.clientHeight
+    this.width = options.width || this.parentElement.clientWidth
+    this.height = options.height || this.parentElement.clientHeight
   }
 
   // 设置canvas相关事件
@@ -88,7 +88,7 @@ class Canvas {
 
   mount() {
     var canvas = `
-      <canvas id="${this.id}" width="${this.W}" height="${this.H}"></canvas>
+      <canvas id="${this.id}" width="${this.width}" height="${this.height}"></canvas>
     ` 
     this.parentElement.insertAdjacentHTML("beforeend", canvas)
     this.canvasElement = document.getElementById(this.id)
