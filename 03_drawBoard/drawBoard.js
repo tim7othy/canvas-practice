@@ -1,10 +1,34 @@
-class DrawBoard extends Canvas {
-  constructor(options) {
-    super(options)
+class DrawBoard {
+  constructor(parentId) {
+    this.parentId = parentId
+    this.setupCanvas(parentId)
     this.setupBackground()
     this.setupTools()
     this.setupTextInput()
     this.setupHistory(30)
+  }
+
+  setupCanvas(parentId) {
+    // 与用户动态交互的canvas层
+    this.uiCanvas = new Canvas({
+      id: "drawboard_ui_canvas",
+      parentId: parentId,
+    })
+    this.uiCtx = this.uiCanvas.getContext("2d")
+
+    // 绘制主要画面的canvas层
+    this.mainCanvas = new Canvas({
+      id: "drawboard_main_canvas",
+      parentId: parentId,
+    })
+    this.mainCtx = this.mainCanvas.getContext("2d")
+
+    // 很少变化的绘制背景的canvas层
+    this.bgCanvas = new Canvas({
+      id: "drawboard_bg_canvas",
+      parentId: parentId,
+    })
+    this.bgCtx = this.bgCanvas.getContext("2d")
   }
 
   setupTextInput() {
@@ -63,7 +87,7 @@ class DrawBoard extends Canvas {
   }
 
   setupBackground() {
-    var bgCtx = this.getCtx(BACKGROUNDLAYER)
+    var bgCtx = this.bgCtx
     bgCtx.save()
     bgCtx.strokeStyle = "#369"
     bgCtx.fillStyle = "RGB(4, 19, 33)"
@@ -131,13 +155,9 @@ class DrawBoard extends Canvas {
   }
 
   mount() {
-    super.mount()
-    // 添加与用户交互的canvas层和背景层
-    this.addLayer(UILAYER, this.zIndex + 1, false)
-    this.addLayer(BACKGROUNDLAYER, this.zIndex - 1, false)
     // 添加用于绘制文本框的input元素
     var input = `<input id="drawboard_input" type="text" style="z-index=-1">`
-    var root = document.getElementById(this.rootId)
-    root.insertAdjacentHTML("beforeend", input)
+    var parent = document.getElementById(this.parentId)
+    parent.insertAdjacentHTML("beforeend", input)
   }
 }
