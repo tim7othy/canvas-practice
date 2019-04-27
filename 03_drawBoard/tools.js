@@ -107,12 +107,13 @@ class Tool {
   drawOn() {
     return new Promise((resolve, reject) => {
       // ui绘制层canvas生成图片
-      var dataURL = this.uiLayer.toDataURL()
+      var dataURL = this.board.uiCanvas.toDataURL()
       var img = new Image()
       img.onload = () => {
-        // 将图片绘制到主画板上
-        this.mainCtx.drawImage(img, 0, 0) 
-        this.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
+        // 将ui层生成的图片绘制到主画板上
+        this.board.mainCtx.drawImage(img, 0, 0) 
+        // 清空ui canvas层的动态绘制内容
+        this.board.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
         this.saveHistory()
         resolve()
       }
@@ -121,7 +122,7 @@ class Tool {
   }
 
   saveHistory() {
-    var t = this.mainLayer.toDataURL()
+    var t = this.board.mainLayer.toDataURL()
     this.board.setHistory(t)
   }
 }
@@ -166,8 +167,8 @@ class Rect extends Tool {
     if (!this.isMouseDown) {
       return
     }
-    this.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
-    this.drawRect(this.uiCtx, this.mouseDownPos, this.mouseMovePos)
+    this.board.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
+    this.drawRect(this.board.uiCtx, this.mouseDownPos, this.mouseMovePos)
   }
 
   onMouseUp(ev) {
@@ -184,10 +185,10 @@ class Eraser extends Tool {
   }
 
   drawEraserBorder(x, y, w, h) {
-    var ctx = this.uiCtx
-    ctx.clearRect(0, 0, this.board.W, this.board.H)
+    var ctx = this.board.uiCtx
     var pos1 = {x, y}
     var pos2 = {x:x+w, y:y+h}
+    ctx.clearRect(0, 0, this.board.W, this.board.H)
     this.drawRect(ctx, pos1, pos2)
   }
 
@@ -197,7 +198,7 @@ class Eraser extends Tool {
     var eraserHeight = 20
     var x = this.mouseDownPos.x - eraserWidth / 2
     var y = this.mouseDownPos.y - eraserHeight / 2
-    this.mainCtx.clearRect(x, y, 20, 20)
+    this.board.mainCtx.clearRect(x, y, 20, 20)
   }
 
   onMouseMove(ev) {
@@ -210,7 +211,7 @@ class Eraser extends Tool {
     if (!this.isMouseDown) {
       return
     }
-    this.mainCtx.clearRect(x, y, eraserWidth, eraserHeight)
+    this.board.mainCtx.clearRect(x, y, eraserWidth, eraserHeight)
   }
 
   onMouseUp(ev) {
@@ -229,15 +230,14 @@ class Line extends Tool {
     if (!this.isMouseDown) {
       return
     }
-    this.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
-    this.drawLine(this.uiCtx, this.mouseDownPos, this.mouseMovePos)
+    this.board.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
+    this.drawLine(this.board.uiCtx, this.mouseDownPos, this.mouseMovePos)
   }
 
   onMouseUp(ev) {
     super.onMouseUp(ev)
     this.drawOn()
   }
-
 }
 
 class Circle extends Tool {
@@ -253,11 +253,9 @@ class Circle extends Tool {
     }
     var pos1 = this.mouseDownPos
     var pos2 = this.mouseMovePos
-    log(pos1, pos2)
     var radius = Math.sqrt(Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2))
-    log(radius)
-    this.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
-    this.drawCircle(this.uiCtx, this.mouseDownPos, radius)
+    this.board.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
+    this.drawCircle(this.board.uiCtx, this.mouseDownPos, radius)
   }
 
   onMouseUp(ev) {
@@ -276,7 +274,7 @@ class Text extends Tool {
   }
   
   drawText(pos, text) {
-    var ctx = this.uiCtx
+    var ctx = this.board.uiCtx
     ctx.clearRect(0, 0, this.board.W, this.board.H)
     ctx.save()
     ctx.font = `${this.fontsize}px sans-serif`;
@@ -309,8 +307,8 @@ class Text extends Tool {
       x: pos.x + this.textWidth,
       y: pos.y + this.textHeight
     }
-    this.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
-    this.drawRect(this.uiCtx, pos, pos2, {dashed: true, flow: true})
+    this.board.uiCtx.clearRect(0, 0, this.board.W, this.board.H)
+    this.drawRect(this.board.uiCtx, pos, pos2, {dashed: true, flow: true})
   }
 
   onInput(ev) {
